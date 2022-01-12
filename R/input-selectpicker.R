@@ -271,7 +271,7 @@ pickerSelectOptions <- function(choices, selected = NULL, choicesOpt = NULL, max
     if (is.list(choice)) {
       optionTag <- list(
         label = htmlEscape(label, TRUE),
-        pickerSelectOptions4(
+        pickerSelectOptions(
           choice, selected,
           choicesOpt = lapply(
             X = choicesOpt,
