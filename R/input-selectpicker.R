@@ -256,23 +256,19 @@ updatePickerInput <- function (session,
 #'
 #' @noRd
 pickerSelectOptions <- function(choices, selected = NULL, choicesOpt = NULL, maxOptGroup = NULL) {
-  if (is.null(choicesOpt) & is.null(maxOptGroup)) {
-    return(selectOptions(choices, selected))
-  }
-  if (is.null(choicesOpt))
-    choicesOpt <- list()
+  if (is.null(choicesOpt)) choicesOpt <- list()
   l <- sapply(choices, length)
-  if (!is.null(maxOptGroup))
-    maxOptGroup <- rep_len(x = maxOptGroup, length.out = sum(l))
-  m <- matrix(data = c(c(1, cumsum(l)[-length(l)] + 1), cumsum(l)), ncol = 2)
-  html <- lapply(seq_along(choices), FUN = function(i) {
-    label <- names(choices)[i]
+  if (!is.null(maxOptGroup)) maxOptGroup <- rep_len(x = maxOptGroup, length.out = sum(l))
+  cs <- cumsum(l)
+  m <- matrix(data = c(1, cs[-length(l)] + 1, cs), ncol = 2)
+  namechoice <- names(choices)
+  tagList(lapply(1:length(choices), function(i) {
+    label <- namechoice[i]
     choice <- choices[[i]]
     if (is.list(choice)) {
-      tags$optgroup(
+      optionTag <- list(
         label = htmlEscape(label, TRUE),
-        `data-max-options` = if (!is.null(maxOptGroup)) maxOptGroup[i],
-        pickerSelectOptions(
+        pickerSelectOptions4(
           choice, selected,
           choicesOpt = lapply(
             X = choicesOpt,
@@ -282,21 +278,32 @@ pickerSelectOptions <- function(choices, selected = NULL, choicesOpt = NULL, max
           )
         )
       )
+      if (!is.null(maxOptGroup))
+        optionTag[["data-max-options"]] <- maxOptGroup[i]
+      optionTag <- dropNulls1(optionTag)
+      do.call(tags$optgroup, optionTag)
     } else {
-      tags$option(
-        value = choice,
-        HTML(htmlEscape(label)),
-        style = choicesOpt$style[i],
-        `data-icon` = choicesOpt$icon[i],
-        `data-subtext` = choicesOpt$subtext[i],
-        `data-content` = choicesOpt$content[i],
-        `data-tokens` = choicesOpt$tokens[i],
-        disabled = if (!is.null(choicesOpt$disabled[i]) && choicesOpt$disabled[i]) "disabled",
-        selected = if (choice %in% selected) "selected" else NULL
-      )
+      if (length(choicesOpt) == 0) {
+        optionTag <- list(
+          value = choice, if (is.null(label)) HTML(NULL) else HTML(htmlEscape(label)),
+          selected = if (any(choice == selected)) "selected" else NULL
+        )
+      } else {
+        optionTag <- list(
+          value = choice, if (is.null(label)) HTML(NULL) else HTML(htmlEscape(label)),
+          style = choicesOpt$style[i],
+          `data-icon` = choicesOpt$icon[i],
+          `data-subtext` = choicesOpt$subtext[i],
+          `data-content` = choicesOpt$content[i],
+          disabled = if (!is.null(choicesOpt$disabled[i]) && choicesOpt$disabled[i]) "disabled",
+          selected = if (any(choice == selected)) "selected" else NULL
+        )
+      }
+      # optionTag$attribs <- c(optionTag$attribs, list(if (choice %in% selected) " selected" else ""))
+      optionTag <- dropNulls1(optionTag)
+      do.call(tags$option, optionTag)
     }
-  })
-  return(tagList(html))
+  }))
 }
 
 # From shiny/input-select.R, faster alternative if no choice options specific to picker
