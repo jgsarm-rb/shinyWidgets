@@ -255,11 +255,9 @@ updatePickerInput <- function (session,
 #' @importFrom htmltools HTML htmlEscape tagList tags
 #'
 #' @noRd
-
 dropNulls1 <- function(x) {
   x[lengths(x) != 0]
 }
-
 pickerSelectOptions <- function(choices, selected = NULL, choicesOpt = NULL, maxOptGroup = NULL) {
   if (is.null(choicesOpt)) choicesOpt <- list()
   l <- sapply(choices, length)
@@ -349,5 +347,4 @@ selectOptions <- function(choices,
   # paste everything together
   htmltools::HTML(paste(html, collapse = "\n"))
 }
-
 
